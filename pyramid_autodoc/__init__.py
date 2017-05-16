@@ -16,6 +16,8 @@ from sphinxcontrib import httpdomain
 from docutils.statemachine import ViewList
 from sphinx import addnodes
 from sphinx.util.nodes import nested_parse_with_titles
+from sphinx import __display_version__ as sphinx_version
+from distutils.version import LooseVersion
 from montague import load_app
 import re
 
@@ -332,7 +334,14 @@ def rst2node(doc_name, data):
 
 def setup(app):
     """Hook the directives when Sphinx ask for it."""
-    if 'http' not in app.domains:
-        httpdomain.setup(app)
+    if LooseVersion(sphinx_version) >= LooseVersion('1.6'):
+        # After 1.6, Sphinx moves the list of domains
+        # to the registry.
+        # See commit 8ca9bdfbd41cc547ccacbd6a97ea66c6cf4d4cea
+        if not 'http' in app.registry.domains:
+            httpdomain.setup(app)
+    else:
+        if 'http' not in app.domains:
+            httpdomain.setup(app)
 
     app.add_directive('autopyramid', RouteDirective)
